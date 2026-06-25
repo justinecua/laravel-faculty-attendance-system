@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
@@ -6,32 +6,44 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/login';
-import { Eye, BookOpen } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 type Props = {
     status?: string;
     canResetPassword: boolean;
 };
 
-export default function Login({ status }: Props) {
+export default function Login({ status, canResetPassword }: Props) {
     return (
         <>
             <Head title="Log in" />
 
-            <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm">
-                <div className="mb-7 text-center">
-                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#1e3a5f]">
-                        <BookOpen size={22} className="text-white" />
+            <div className="w-full min-w-md rounded-xl bg-white p-9 shadow-sm">
+                {/* Logo */}
+                <div className="mb-8 flex items-center gap-2.5">
+                    <div className="flex h-8 w-9 shrink-0 items-center justify-center rounded-[7px] bg-[#1e3a5f]">
+                        <Shield
+                            size={15}
+                            className="text-white"
+                            strokeWidth={1.8}
+                        />
                     </div>
-
-                    <h2 className="text-xl font-bold text-foreground">
-                        Welcome back
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Sign in to access your dashboard
-                    </p>
+                    <div>
+                        <p className="font-serif text-[15px] leading-tight text-[#1e3a5f]">
+                            St. Michael's College
+                        </p>
+                    </div>
                 </div>
 
+                {/* Heading */}
+                <h2 className="text-[17px] font-medium text-gray-900">
+                    Welcome back
+                </h2>
+                <p className="mt-0.5 mb-6 text-[13px] text-gray-500">
+                    Sign in to your account
+                </p>
+
+                {/* Form */}
                 <Form
                     {...store.form()}
                     resetOnSuccess={['password']}
@@ -40,7 +52,12 @@ export default function Login({ status }: Props) {
                     {({ processing, errors }) => (
                         <>
                             <div>
-                                <Label htmlFor="email">Email</Label>
+                                <Label
+                                    htmlFor="email"
+                                    className="text-xs font-medium text-gray-700"
+                                >
+                                    Email
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -48,36 +65,53 @@ export default function Login({ status }: Props) {
                                     required
                                     autoFocus
                                     autoComplete="email"
-                                    placeholder="email@example.com"
-                                    className="mt-1.5"
+                                    placeholder="you@stmichaels.edu.ph"
+                                    className="mt-1.5 border-gray-300 text-sm focus-visible:border-[#1e3a5f] focus-visible:ring-0"
+                                />
+                                <InputError
+                                    message={errors.email}
+                                    className="mt-1"
                                 />
                             </div>
 
                             <div>
-                                <Label htmlFor="password">Password</Label>
+                                <Label
+                                    htmlFor="password"
+                                    className="text-xs font-medium text-gray-700"
+                                >
+                                    Password
+                                </Label>
                                 <PasswordInput
                                     id="password"
                                     name="password"
                                     required
                                     autoComplete="current-password"
-                                    placeholder="Password"
-                                    className="mt-1.5"
+                                    placeholder="••••••••"
+                                    className="mt-1.5 border-gray-300 text-sm focus-visible:border-[#1e3a5f] focus-visible:ring-0"
                                 />
+                                <InputError
+                                    message={errors.password}
+                                    className="mt-1"
+                                />
+
+                                {canResetPassword && (
+                                    <Link
+                                        href="/forgot-password"
+                                        className="mt-1.5 block text-right text-[11.5px] text-[#1e3a5f] hover:underline"
+                                    >
+                                        Forgot password?
+                                    </Link>
+                                )}
                             </div>
-                            <InputError
-                                className="text-center"
-                                message={errors.email}
-                            />
-                            <InputError
-                                className="text-center"
-                                message={errors.password}
-                            />
+
                             <Button
                                 type="submit"
-                                className="mt-4 w-full bg-[#1e3a5f] hover:bg-[#2d5282]"
+                                className="mt-2 w-full bg-[#1e3a5f] text-sm font-medium tracking-wide hover:bg-[#2d5282]"
                                 disabled={processing}
                             >
-                                {processing && <Spinner />}
+                                {processing && (
+                                    <Spinner className="mr-2 h-4 w-4" />
+                                )}
                                 Sign in
                             </Button>
                         </>
@@ -85,12 +119,12 @@ export default function Login({ status }: Props) {
                 </Form>
 
                 {status && (
-                    <div className="mt-4 text-center text-sm font-medium text-green-600">
+                    <p className="mt-4 text-center text-sm font-medium text-green-600">
                         {status}
-                    </div>
+                    </p>
                 )}
 
-                <p className="mt-5 text-center text-xs text-muted-foreground">
+                <p className="mt-7 text-center text-[11px] text-gray-400">
                     © 2026 St. Michael&apos;s College Inc. All rights reserved.
                 </p>
             </div>

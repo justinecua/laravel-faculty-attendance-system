@@ -911,267 +911,136 @@ function TopBar({
 
 // ===== ADMIN: DASHBOARD =====
 
+type AdminStats = {
+    totalFaculty: number;
+    totalSecretaries: number;
+    totalDepartments: number;
+    totalHolidays: number;
+    currentSemester?: {
+        name: string;
+        start_date: string;
+        end_date: string;
+    };
+    activeSchoolYear?: {
+        year_label: string;
+    };
+};
+
 function AdminDashboard() {
+    const { adminStats, departments } = usePage().props as {
+        adminStats: AdminStats;
+        departments: Department[];
+    };
+
     return (
         <div className="space-y-6 p-8">
             <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
                 <StatCard
                     label="Total Faculty"
-                    value={75}
+                    value={adminStats.totalFaculty}
                     icon={GraduationCap}
-                    sub="across 5 departments"
+                    sub="registered faculty"
                     color="bg-[#1e3a5f]"
                 />
+
                 <StatCard
-                    label="Today Present"
-                    value={62}
-                    icon={CheckCircle2}
-                    sub="of 72 teaching today"
+                    label="Secretaries"
+                    value={adminStats.totalSecretaries}
+                    icon={Briefcase}
+                    sub="registered secretaries"
+                    color="bg-amber-500"
+                />
+
+                <StatCard
+                    label="Departments"
+                    value={adminStats.totalDepartments}
+                    icon={Building2}
+                    sub="academic departments"
                     color="bg-green-600"
                 />
+
                 <StatCard
-                    label="Today Absent"
-                    value={7}
-                    icon={XCircle}
-                    sub="faculty members"
+                    label="Holidays"
+                    value={adminStats.totalHolidays}
+                    icon={CalendarDays}
+                    sub="no-class days"
                     color="bg-red-500"
                 />
-                <StatCard
-                    label="Today Late"
-                    value={3}
-                    icon={Timer}
-                    sub="faculty members"
-                    color="bg-orange-500"
-                />
-            </div>
-
-            <div className="grid grid-cols-3 gap-5">
-                <div className="col-span-2 rounded-xl border border-border bg-card p-6">
-                    <div className="mb-5 flex items-center justify-between">
-                        <div>
-                            <h3 className="font-semibold text-foreground">
-                                Attendance by Department
-                            </h3>
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                                Tuesday, June 24, 2024
-                            </p>
-                        </div>
-                        <select className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:outline-none">
-                            <option>Today</option>
-                            <option>This Week</option>
-                            <option>This Month</option>
-                        </select>
-                    </div>
-                    <ResponsiveContainer width="100%" height={210}>
-                        <BarChart data={DEPT_CHART_DATA} barSize={16}>
-                            <CartesianGrid
-                                strokeDasharray="3 3"
-                                stroke="#f0f4f8"
-                                vertical={false}
-                            />
-                            <XAxis
-                                dataKey="dept"
-                                tick={{ fontSize: 11, fill: '#64748b' }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <YAxis
-                                tick={{ fontSize: 11, fill: '#64748b' }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <Tooltip
-                                contentStyle={{
-                                    background: '#fff',
-                                    border: '1px solid #e2e8f0',
-                                    borderRadius: '8px',
-                                    fontSize: '11px',
-                                }}
-                            />
-                            <Legend wrapperStyle={{ fontSize: '11px' }} />
-                            <Bar
-                                dataKey="present"
-                                name="Present"
-                                fill="#16a34a"
-                                radius={[3, 3, 0, 0]}
-                            />
-                            <Bar
-                                dataKey="absent"
-                                name="Absent"
-                                fill="#dc2626"
-                                radius={[3, 3, 0, 0]}
-                            />
-                            <Bar
-                                dataKey="late"
-                                name="Late"
-                                fill="#ea580c"
-                                radius={[3, 3, 0, 0]}
-                            />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-
-                <div className="rounded-xl border border-border bg-card p-6">
-                    <div className="mb-5">
-                        <h3 className="font-semibold text-foreground">
-                            Monthly Trend
-                        </h3>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                            1st Semester 2024
-                        </p>
-                    </div>
-                    <ResponsiveContainer width="100%" height={210}>
-                        <LineChart data={MONTHLY_TREND}>
-                            <CartesianGrid
-                                strokeDasharray="3 3"
-                                stroke="#f0f4f8"
-                                vertical={false}
-                            />
-                            <XAxis
-                                dataKey="month"
-                                tick={{ fontSize: 11, fill: '#64748b' }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <YAxis
-                                tick={{ fontSize: 11, fill: '#64748b' }}
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <Tooltip
-                                contentStyle={{
-                                    background: '#fff',
-                                    border: '1px solid #e2e8f0',
-                                    borderRadius: '8px',
-                                    fontSize: '11px',
-                                }}
-                            />
-                            <Line
-                                type="monotone"
-                                dataKey="present"
-                                stroke="#16a34a"
-                                strokeWidth={2}
-                                dot={{ r: 3 }}
-                                name="Present"
-                            />
-                            <Line
-                                type="monotone"
-                                dataKey="absent"
-                                stroke="#dc2626"
-                                strokeWidth={2}
-                                dot={{ r: 3 }}
-                                name="Absent"
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
             </div>
 
             <div className="grid grid-cols-3 gap-5">
                 <div className="col-span-2 rounded-xl border border-border bg-card p-6">
                     <h3 className="mb-4 font-semibold text-foreground">
-                        Recent Activity
+                        Faculty by Department
                     </h3>
+
                     <div className="space-y-3">
-                        {[
-                            {
-                                text: 'Attendance marked for CITE department (12 faculty)',
-                                time: '2 min ago',
-                                dot: 'bg-green-500',
-                            },
-                            {
-                                text: 'New faculty registered: Ana Villanueva (CITE)',
-                                time: '1 hour ago',
-                                dot: 'bg-blue-500',
-                            },
-                            {
-                                text: 'Tally report exported by Secretary Ana Reyes',
-                                time: '3 hours ago',
-                                dot: 'bg-purple-500',
-                            },
-                            {
-                                text: 'Academic calendar updated for 1st Semester 2024',
-                                time: 'Yesterday',
-                                dot: 'bg-amber-500',
-                            },
-                            {
-                                text: 'Holiday added: Feast of the Immaculate Conception (Dec 8)',
-                                time: 'Dec 7',
-                                dot: 'bg-gray-400',
-                            },
-                        ].map((item, i) => (
+                        {departments?.map((dept) => (
                             <div
-                                key={i}
-                                className="flex items-start gap-3 border-b border-border py-2 last:border-0"
+                                key={dept.id}
+                                className="flex items-center justify-between rounded-lg bg-muted/30 px-4 py-3"
                             >
-                                <span
-                                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.dot}`}
-                                />
                                 <div>
-                                    <p className="text-sm text-foreground">
-                                        {item.text}
+                                    <p className="text-sm font-semibold">
+                                        {dept.code}
                                     </p>
-                                    <p className="mt-0.5 text-xs text-muted-foreground">
-                                        {item.time}
+                                    <p className="text-xs text-muted-foreground">
+                                        {dept.name}
                                     </p>
                                 </div>
+
+                                <p className="text-xl font-bold">
+                                    {dept.facultyCount ?? 0}
+                                </p>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                <div className="space-y-4">
-                    <div className="rounded-xl border border-border bg-card p-5">
-                        <h3 className="mb-4 font-semibold text-foreground">
-                            Current Semester
-                        </h3>
-                        <div className="space-y-2.5">
-                            {[
-                                { label: 'School Year', value: '2024–2025' },
-                                { label: 'Semester', value: '1st Semester' },
-                                { label: 'Start Date', value: 'Aug 12, 2024' },
-                                { label: 'End Date', value: 'Dec 20, 2024' },
-                                { label: 'Class Days', value: '90 days' },
-                                { label: 'Holidays', value: '8 dates' },
-                            ].map(({ label, value }) => (
-                                <div
-                                    key={label}
-                                    className="flex justify-between text-sm"
-                                >
-                                    <span className="text-muted-foreground">
-                                        {label}
-                                    </span>
-                                    <span
-                                        className="font-medium text-foreground"
-                                        style={{
-                                            fontFamily:
-                                                "'JetBrains Mono', monospace",
-                                        }}
-                                    >
-                                        {value}
-                                    </span>
-                                </div>
-                            ))}
+                <div className="rounded-xl border border-border bg-card p-5">
+                    <h3 className="mb-4 font-semibold text-foreground">
+                        Current Semester
+                    </h3>
+
+                    <div className="space-y-2.5">
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">
+                                School Year
+                            </span>
+                            <span className="font-medium">
+                                {adminStats.activeSchoolYear?.year_label ??
+                                    'Not set'}
+                            </span>
                         </div>
-                    </div>
-                    <div
-                        className="rounded-xl p-5 text-white"
-                        style={{ backgroundColor: '#1e3a5f' }}
-                    >
-                        <p className="mb-1 text-xs text-blue-200">
-                            Overall Attendance Rate
-                        </p>
-                        <p
-                            className="text-4xl font-bold"
-                            style={{
-                                fontFamily: "'JetBrains Mono', monospace",
-                            }}
-                        >
-                            94.2%
-                        </p>
-                        <p className="mt-1.5 text-xs text-blue-300">
-                            ↑ 1.3% from last semester
-                        </p>
+
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">
+                                Semester
+                            </span>
+                            <span className="font-medium">
+                                {adminStats.currentSemester?.name ?? 'Not set'}
+                            </span>
+                        </div>
+
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">
+                                Start Date
+                            </span>
+                            <span className="font-medium">
+                                {adminStats.currentSemester?.start_date ??
+                                    'Not set'}
+                            </span>
+                        </div>
+
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">
+                                End Date
+                            </span>
+                            <span className="font-medium">
+                                {adminStats.currentSemester?.end_date ??
+                                    'Not set'}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1181,47 +1050,38 @@ function AdminDashboard() {
 
 // ===== ADMIN: USER MANAGEMENT =====
 
+type AdminUser = {
+    id: number;
+    name: string;
+    email: string;
+    employeeId: string;
+    role: Role;
+    dept: string;
+    departmentName: string;
+    position: string;
+    status: UserStatus;
+    avatar: string;
+};
+
 function AdminUsers({ onNavigate }: { onNavigate: (p: string) => void }) {
     const [search, setSearch] = useState('');
     const [deptFilter, setDeptFilter] = useState('all');
     const [roleFilter, setRoleFilter] = useState('all');
 
-    const secretaries = [
-        {
-            id: 101,
-            name: 'Ana Reyes',
-            email: 'areyes@university.edu',
-            dept: '—',
-            position: 'Administrative Secretary',
-            employeeId: 'SEC-001',
-            status: 'active' as UserStatus,
-            avatar: 'AR',
-            role: 'secretary' as Role,
-        },
-        {
-            id: 102,
-            name: 'Carla Bautista',
-            email: 'cbautista@university.edu',
-            dept: '—',
-            position: 'Administrative Secretary',
-            employeeId: 'SEC-002',
-            status: 'active' as UserStatus,
-            avatar: 'CB',
-            role: 'secretary' as Role,
-        },
-    ];
+    const { users = [], departments = [] } = usePage().props as {
+        users?: AdminUser[];
+        departments?: Department[];
+    };
 
-    const allUsers = [
-        ...FACULTY_LIST.map((f) => ({ ...f, role: 'faculty' as Role })),
-        ...secretaries,
-    ];
-
-    const filtered = allUsers.filter((u) => {
+    const filtered = users.filter((u) => {
         const s =
             u.name.toLowerCase().includes(search.toLowerCase()) ||
-            u.email.toLowerCase().includes(search.toLowerCase());
+            u.email.toLowerCase().includes(search.toLowerCase()) ||
+            u.employeeId?.toLowerCase().includes(search.toLowerCase());
+
         const d = deptFilter === 'all' || u.dept === deptFilter;
         const r = roleFilter === 'all' || u.role === roleFilter;
+
         return s && d && r;
     });
 
@@ -1236,24 +1096,26 @@ function AdminUsers({ onNavigate }: { onNavigate: (p: string) => void }) {
                         />
                         <input
                             type="text"
-                            placeholder="Search name or email..."
+                            placeholder="Search name, email, or ID..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-56 rounded-lg border border-border bg-card py-2 pr-4 pl-8 text-sm text-foreground focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
                         />
                     </div>
+
                     <select
                         value={deptFilter}
                         onChange={(e) => setDeptFilter(e.target.value)}
                         className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus:outline-none"
                     >
                         <option value="all">All Departments</option>
-                        {DEPARTMENTS.map((d) => (
+                        {departments?.map((d) => (
                             <option key={d.code} value={d.code}>
                                 {d.code}
                             </option>
                         ))}
                     </select>
+
                     <select
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
@@ -1264,6 +1126,7 @@ function AdminUsers({ onNavigate }: { onNavigate: (p: string) => void }) {
                         <option value="secretary">Secretary</option>
                     </select>
                 </div>
+
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => onNavigate('add-secretary')}
@@ -1271,16 +1134,11 @@ function AdminUsers({ onNavigate }: { onNavigate: (p: string) => void }) {
                     >
                         <Plus size={14} /> Add Secretary
                     </button>
+
                     <button
                         onClick={() => onNavigate('add-faculty')}
                         className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-white transition-colors"
                         style={{ backgroundColor: '#1e3a5f' }}
-                        onMouseEnter={(e) =>
-                            (e.currentTarget.style.backgroundColor = '#2d5282')
-                        }
-                        onMouseLeave={(e) =>
-                            (e.currentTarget.style.backgroundColor = '#1e3a5f')
-                        }
                     >
                         <Plus size={14} /> Add Faculty
                     </button>
@@ -1303,13 +1161,18 @@ function AdminUsers({ onNavigate }: { onNavigate: (p: string) => void }) {
                                 ].map((h) => (
                                     <th
                                         key={h}
-                                        className={`px-5 py-3.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase ${h === 'Actions' ? 'text-right' : 'text-left'}`}
+                                        className={`px-5 py-3.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase ${
+                                            h === 'Actions'
+                                                ? 'text-right'
+                                                : 'text-left'
+                                        }`}
                                     >
                                         {h}
                                     </th>
                                 ))}
                             </tr>
                         </thead>
+
                         <tbody className="divide-y divide-border">
                             {filtered.map((u) => (
                                 <tr
@@ -1319,10 +1182,15 @@ function AdminUsers({ onNavigate }: { onNavigate: (p: string) => void }) {
                                     <td className="px-5 py-4">
                                         <div className="flex items-center gap-3">
                                             <div
-                                                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${u.role === 'faculty' ? 'bg-[#1e3a5f]' : 'bg-amber-500'}`}
+                                                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
+                                                    u.role === 'faculty'
+                                                        ? 'bg-[#1e3a5f]'
+                                                        : 'bg-amber-500'
+                                                }`}
                                             >
                                                 {u.avatar}
                                             </div>
+
                                             <div>
                                                 <p className="text-sm font-medium text-foreground">
                                                     {u.name}
@@ -1333,9 +1201,11 @@ function AdminUsers({ onNavigate }: { onNavigate: (p: string) => void }) {
                                             </div>
                                         </div>
                                     </td>
+
                                     <td className="px-5 py-4">
                                         <RoleBadge role={u.role} />
                                     </td>
+
                                     <td className="px-5 py-4">
                                         <span
                                             className="text-sm font-medium"
@@ -1347,11 +1217,13 @@ function AdminUsers({ onNavigate }: { onNavigate: (p: string) => void }) {
                                             {u.dept}
                                         </span>
                                     </td>
+
                                     <td className="px-5 py-4">
                                         <span className="text-sm text-muted-foreground">
                                             {u.position}
                                         </span>
                                     </td>
+
                                     <td className="px-5 py-4">
                                         <span
                                             className="text-xs font-medium"
@@ -1363,14 +1235,17 @@ function AdminUsers({ onNavigate }: { onNavigate: (p: string) => void }) {
                                             {u.employeeId}
                                         </span>
                                     </td>
+
                                     <td className="px-5 py-4">
                                         <UserStatusBadge status={u.status} />
                                     </td>
+
                                     <td className="px-5 py-4">
                                         <div className="flex items-center justify-end gap-1">
                                             <button className="rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-muted hover:text-foreground">
                                                 <Edit2 size={13} />
                                             </button>
+
                                             <button className="rounded-lg p-1.5 text-muted-foreground transition-all hover:bg-red-50 hover:text-red-600">
                                                 <UserX size={13} />
                                             </button>
@@ -1378,30 +1253,25 @@ function AdminUsers({ onNavigate }: { onNavigate: (p: string) => void }) {
                                     </td>
                                 </tr>
                             ))}
+
+                            {filtered.length === 0 && (
+                                <tr>
+                                    <td
+                                        colSpan={7}
+                                        className="px-5 py-8 text-center text-sm text-muted-foreground"
+                                    >
+                                        No users found.
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
+
                 <div className="flex items-center justify-between border-t border-border px-5 py-3 text-xs text-muted-foreground">
                     <span>
-                        Showing {filtered.length} of {allUsers.length} users
+                        Showing {filtered.length} of {users?.length ?? 0} users
                     </span>
-                    <div className="flex items-center gap-1">
-                        <button className="rounded border border-border px-3 py-1.5 transition-colors hover:bg-muted">
-                            Prev
-                        </button>
-                        <button
-                            className="rounded border px-3 py-1.5 text-white"
-                            style={{
-                                backgroundColor: '#1e3a5f',
-                                borderColor: '#1e3a5f',
-                            }}
-                        >
-                            1
-                        </button>
-                        <button className="rounded border border-border px-3 py-1.5 transition-colors hover:bg-muted">
-                            Next
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1775,24 +1645,61 @@ function AddDepartmentForm({ onBack }: { onBack: () => void }) {
 }
 // ===== ADMIN: ACADEMIC CALENDAR =====
 
-function AdminCalendar() {
-    const [holidays, setHolidays] = useState([
-        { id: 1, name: 'National Heroes Day', date: '2024-08-26' },
-        { id: 2, name: 'All Saints Day', date: '2024-11-01' },
-        { id: 3, name: 'All Souls Day', date: '2024-11-02' },
-        { id: 4, name: 'Bonifacio Day', date: '2024-11-30' },
-        {
-            id: 5,
-            name: 'Feast of the Immaculate Conception',
-            date: '2024-12-08',
-        },
-        { id: 6, name: 'Christmas Day', date: '2024-12-25' },
-        { id: 7, name: 'Rizal Day', date: '2024-12-30' },
-        { id: 8, name: "New Year's Day", date: '2025-01-01' },
-    ]);
+type Semester = {
+    id: number;
+    name: string;
+    start_date: string;
+    end_date: string;
+};
 
-    const remove = (id: number) =>
-        setHolidays((h) => h.filter((x) => x.id !== id));
+type Holiday = {
+    id: number;
+    semester_id: number;
+    name: string;
+    date: string;
+};
+
+function AdminCalendar() {
+    const { semesters, holidays } = usePage().props as {
+        semesters: Semester[];
+        holidays: Holiday[];
+    };
+
+    const configForm = useForm({
+        year_label: '',
+        semester_name: '',
+        start_date: '',
+        end_date: '',
+    });
+
+    const holidayForm = useForm({
+        semester_id: '',
+        name: '',
+        date: '',
+    });
+
+    const saveConfig = () => {
+        configForm.post('/calendar/configuration', {
+            onSuccess: () => toast.success('Calendar configuration saved.'),
+            onError: () => toast.error('Please fix the calendar details.'),
+        });
+    };
+
+    const addHoliday = () => {
+        holidayForm.post('/calendar/holidays', {
+            onSuccess: () => {
+                toast.success('Holiday added successfully.');
+                holidayForm.reset();
+            },
+            onError: () => toast.error('Please fix the holiday details.'),
+        });
+    };
+
+    const remove = (id: number) => {
+        router.delete(`/calendar/holidays/${id}`, {
+            onSuccess: () => toast.success('Holiday deleted.'),
+        });
+    };
 
     return (
         <div className="p-8">
@@ -1802,159 +1709,141 @@ function AdminCalendar() {
                         <h3 className="font-semibold text-foreground">
                             Calendar Configuration
                         </h3>
-                        {[
-                            {
-                                label: 'School Year',
-                                type: 'select',
-                                opts: [
-                                    '2024 – 2025',
-                                    '2023 – 2024',
-                                    '2025 – 2026',
-                                ],
-                            },
-                            {
-                                label: 'Semester',
-                                type: 'select',
-                                opts: [
-                                    '1st Semester',
-                                    '2nd Semester',
-                                    'Summer',
-                                ],
-                            },
-                        ].map(({ label, type, opts }) => (
-                            <div key={label}>
-                                <label className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                    {label}
-                                </label>
-                                <select className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-foreground focus:outline-none">
-                                    {opts.map((o) => (
-                                        <option key={o}>{o}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        ))}
-                        <div>
-                            <label className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                Class Start Date
-                            </label>
-                            <input
-                                type="date"
-                                defaultValue="2024-08-12"
-                                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-foreground focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
-                            />
-                        </div>
-                        <div>
-                            <label className="mb-1.5 block text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                                Class End Date
-                            </label>
-                            <input
-                                type="date"
-                                defaultValue="2024-12-20"
-                                className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm text-foreground focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
-                            />
-                        </div>
-                        <div className="space-y-2 border-t border-border pt-4">
-                            {[
-                                { label: 'Total Calendar Days', value: '131' },
-                                { label: 'Weekends Excluded', value: '37' },
-                                {
-                                    label: 'Holidays',
-                                    value: `${holidays.length}`,
-                                },
-                            ].map(({ label, value }) => (
-                                <div
-                                    key={label}
-                                    className="flex justify-between text-sm"
-                                >
-                                    <span className="text-muted-foreground">
-                                        {label}
-                                    </span>
-                                    <span
-                                        style={{
-                                            fontFamily:
-                                                "'JetBrains Mono', monospace",
-                                        }}
-                                        className="font-medium"
-                                    >
-                                        {value}
-                                    </span>
-                                </div>
-                            ))}
-                            <div className="flex justify-between border-t border-border pt-2 text-sm font-semibold">
-                                <span>Class Days</span>
-                                <span
-                                    style={{
-                                        fontFamily:
-                                            "'JetBrains Mono', monospace",
-                                        color: '#1e3a5f',
-                                    }}
-                                >
-                                    90 days
-                                </span>
-                            </div>
-                        </div>
+
+                        <input
+                            value={configForm.data.year_label}
+                            onChange={(e) =>
+                                configForm.setData('year_label', e.target.value)
+                            }
+                            placeholder="School Year e.g. 2026–2027"
+                            className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm"
+                        />
+
+                        <input
+                            value={configForm.data.semester_name}
+                            onChange={(e) =>
+                                configForm.setData(
+                                    'semester_name',
+                                    e.target.value,
+                                )
+                            }
+                            placeholder="Semester e.g. 1st Semester"
+                            className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm"
+                        />
+
+                        <input
+                            type="date"
+                            value={configForm.data.start_date}
+                            onChange={(e) =>
+                                configForm.setData('start_date', e.target.value)
+                            }
+                            className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm"
+                        />
+
+                        <input
+                            type="date"
+                            value={configForm.data.end_date}
+                            onChange={(e) =>
+                                configForm.setData('end_date', e.target.value)
+                            }
+                            className="w-full rounded-lg border border-border bg-background px-3.5 py-2.5 text-sm"
+                        />
+
                         <button
-                            className="w-full rounded-lg py-2.5 text-sm font-medium text-white transition-colors"
+                            disabled={configForm.processing}
+                            onClick={saveConfig}
+                            className="w-full rounded-lg py-2.5 text-sm font-medium text-white"
                             style={{ backgroundColor: '#1e3a5f' }}
-                            onMouseEnter={(e) =>
-                                (e.currentTarget.style.backgroundColor =
-                                    '#2d5282')
-                            }
-                            onMouseLeave={(e) =>
-                                (e.currentTarget.style.backgroundColor =
-                                    '#1e3a5f')
-                            }
                         >
-                            Save Configuration
+                            {configForm.processing
+                                ? 'Saving...'
+                                : 'Save Configuration'}
                         </button>
                     </div>
                 </div>
 
                 <div className="col-span-2 rounded-xl border border-border bg-card p-6">
-                    <div className="mb-5 flex items-center justify-between">
+                    <div className="mb-5">
                         <h3 className="font-semibold text-foreground">
                             Holidays & No-Class Days
                         </h3>
-                        <button
-                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-white transition-colors"
-                            style={{ backgroundColor: '#1e3a5f' }}
-                        >
-                            <Plus size={13} /> Add Holiday
-                        </button>
+
+                        <div className="mt-4 grid grid-cols-4 gap-2">
+                            <select
+                                value={holidayForm.data.semester_id}
+                                onChange={(e) =>
+                                    holidayForm.setData(
+                                        'semester_id',
+                                        e.target.value,
+                                    )
+                                }
+                                className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                            >
+                                <option value="">Select semester</option>
+                                {semesters?.map((semester) => (
+                                    <option
+                                        key={semester.id}
+                                        value={semester.id}
+                                    >
+                                        {semester.name}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <input
+                                value={holidayForm.data.name}
+                                onChange={(e) =>
+                                    holidayForm.setData('name', e.target.value)
+                                }
+                                placeholder="Holiday name"
+                                className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                            />
+
+                            <input
+                                type="date"
+                                value={holidayForm.data.date}
+                                onChange={(e) =>
+                                    holidayForm.setData('date', e.target.value)
+                                }
+                                className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                            />
+
+                            <button
+                                disabled={holidayForm.processing}
+                                onClick={addHoliday}
+                                className="flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm text-white"
+                                style={{ backgroundColor: '#1e3a5f' }}
+                            >
+                                <Plus size={13} /> Add
+                            </button>
+                        </div>
                     </div>
+
                     <div className="space-y-1.5">
-                        {holidays.map((h) => (
+                        {holidays?.map((h) => (
                             <div
                                 key={h.id}
-                                className="group flex items-center justify-between rounded-lg bg-muted/40 px-4 py-3 transition-colors hover:bg-muted/70"
+                                className="group flex items-center justify-between rounded-lg bg-muted/40 px-4 py-3"
                             >
-                                <div className="flex items-center gap-3">
-                                    <span className="h-2 w-2 shrink-0 rounded-full bg-gray-400" />
-                                    <div>
-                                        <p className="text-sm font-medium text-foreground">
-                                            {h.name}
-                                        </p>
-                                        <p
-                                            className="mt-0.5 text-xs text-muted-foreground"
-                                            style={{
-                                                fontFamily:
-                                                    "'JetBrains Mono', monospace",
-                                            }}
-                                        >
-                                            {new Date(
-                                                h.date + 'T00:00:00',
-                                            ).toLocaleDateString('en-US', {
-                                                weekday: 'long',
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                            })}
-                                        </p>
-                                    </div>
+                                <div>
+                                    <p className="text-sm font-medium text-foreground">
+                                        {h.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {new Date(
+                                            h.date + 'T00:00:00',
+                                        ).toLocaleDateString('en-US', {
+                                            weekday: 'long',
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                        })}
+                                    </p>
                                 </div>
+
                                 <button
                                     onClick={() => remove(h.id)}
-                                    className="rounded p-1 text-muted-foreground opacity-0 transition-all group-hover:opacity-100 hover:text-red-600"
+                                    className="rounded p-1 text-muted-foreground hover:text-red-600"
                                 >
                                     <X size={13} />
                                 </button>
@@ -1966,7 +1855,6 @@ function AdminCalendar() {
         </div>
     );
 }
-
 // ===== ADMIN: REPORTS =====
 
 function AdminReports() {
