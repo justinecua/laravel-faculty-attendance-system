@@ -12,29 +12,21 @@ class CalendarController extends Controller
     public function storeConfiguration(Request $request)
     {
         $validated = $request->validate([
-            'year_label' => ['required', 'string', 'max:255'],
+            'school_year_id' => ['required', 'exists:school_year,id'],
             'semester_name' => ['required', 'string', 'max:255'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
         ]);
 
-        SchoolYear::query()->update(['is_active' => false]);
-
-        $schoolYear = SchoolYear::create([
-            'year_label' => $validated['year_label'],
-            'is_active' => true,
-            'created_at' => now(),
-        ]);
-
         Semester::create([
-            'school_year_id' => $schoolYear->id,
+            'school_year_id' => $validated['school_year_id'],
             'name' => $validated['semester_name'],
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
             'created_at' => now(),
         ]);
 
-        return back()->with('success', 'Calendar configuration saved.');
+        return back()->with('success', 'Semester saved.');
     }
 
     public function storeHoliday(Request $request)
@@ -60,5 +52,31 @@ class CalendarController extends Controller
         $holiday->delete();
 
         return back()->with('success', 'Holiday deleted.');
+    }
+
+    public function storeSchoolYear(Request $request)
+    {
+        $validated = $request->validate([
+            'year_label' => ['required', 'string', 'max:255', 'unique:school_year,year_label'],
+        ]);
+
+        SchoolYear::create([
+            'year_label' => $validated['year_label'],
+            'is_active' => false,
+            'created_at' => now(),
+        ]);
+
+        return back()->with('success', 'School year added.');
+    }
+
+    public function activateSchoolYear(SchoolYear $schoolYear)
+    {
+        SchoolYear::query()->update(['is_active' => false]);
+
+        $schoolYear->update([
+            'is_active' => true,
+        ]);
+
+        return back()->with('success', 'School year activated.');
     }
 }
