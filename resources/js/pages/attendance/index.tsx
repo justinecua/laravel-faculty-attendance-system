@@ -34,6 +34,7 @@ import {
     Timer,
     UserX,
     UserCheck,
+    ClipboardList,
 } from 'lucide-react';
 
 import { usePage, router, useForm } from '@inertiajs/react';
@@ -251,6 +252,7 @@ function Sidebar({
             { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
             { id: 'users', label: 'Accounts', icon: Users },
             { id: 'departments', label: 'Departments', icon: Building2 },
+            { id: 'schedules', label: 'Class Schedule', icon: CalendarDays },
             { id: 'calendar', label: 'Academic Calendar', icon: CalendarDays },
             { id: 'reports', label: 'Reports', icon: FileBarChart },
         ],
@@ -261,6 +263,7 @@ function Sidebar({
         ],
         faculty: [
             { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+            { id: 'my-schedule', label: 'Class Schedule', icon: ClipboardList },
             { id: 'history', label: 'Attendance History', icon: CalendarDays },
             { id: 'profile', label: 'My Profile', icon: User },
         ],
@@ -444,6 +447,7 @@ type AdminStats = {
     totalSecretaries: number;
     totalDepartments: number;
     totalHolidays: number;
+    totalSchedules: number;
     currentSemester?: {
         name: string;
         start_date: string;
@@ -1778,6 +1782,242 @@ function AdminReports() {
     );
 }
 
+type ClassSchedule = {
+    id: number;
+    faculty_id: number;
+    semester_id: number;
+    faculty_name: string;
+    semester_name: string;
+    school_year_label?: string;
+    subject_code: string;
+    subject_name: string;
+    day: string;
+    start_time: string;
+    end_time: string;
+    room?: string;
+};
+function AdminClassSchedules() {
+    const {
+        classSchedules = [],
+        facultyUsers = [],
+        semesters = [],
+        schoolYears = [],
+    } = usePage().props as {
+        classSchedules?: ClassSchedule[];
+        facultyUsers?: FacultyUser[];
+        semesters?: Semester[];
+        schoolYears?: SchoolYear[];
+    };
+
+    const { data, setData, post, processing, errors, reset } = useForm({
+        faculty_id: '',
+        semester_id: '',
+        subject_code: '',
+        subject_name: '',
+        day: '',
+        start_time: '',
+        end_time: '',
+        room: '',
+    });
+
+    const submit = () => {
+        post('/class-schedules', {
+            onSuccess: () => {
+                toast.success('Class schedule added.');
+                reset();
+            },
+            onError: () => toast.error('Please fix the schedule details.'),
+        });
+    };
+
+    const remove = (id: number) => {
+        router.delete(`/class-schedules/${id}`, {
+            onSuccess: () => toast.success('Class schedule deleted.'),
+        });
+    };
+
+    return (
+        <div className="h-full space-y-5 bg-[#f9fbfc] p-8">
+            <div className="rounded-xl border border-border bg-card p-6">
+                <h3 className="mb-4 font-semibold">Add Class Schedule</h3>
+
+                <div className="grid grid-cols-4 gap-3">
+                    <select
+                        value={data.faculty_id}
+                        onChange={(e) => setData('faculty_id', e.target.value)}
+                        className="rounded-lg border px-3 py-2 text-sm"
+                    >
+                        <option value="">Select faculty</option>
+                        {facultyUsers.map((f) => (
+                            <option key={f.id} value={f.id}>
+                                {f.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={data.semester_id}
+                        onChange={(e) => setData('semester_id', e.target.value)}
+                        className="rounded-lg border px-3 py-2 text-sm"
+                    >
+                        <option value="">Select semester</option>
+                        {semesters.map((s) => {
+                            const year = schoolYears.find(
+                                (y) => y.id === s.school_year_id,
+                            );
+                            return (
+                                <option key={s.id} value={s.id}>
+                                    {year?.year_label} - {s.name}
+                                </option>
+                            );
+                        })}
+                    </select>
+
+                    <input
+                        value={data.subject_code}
+                        onChange={(e) =>
+                            setData('subject_code', e.target.value)
+                        }
+                        placeholder="Subject Code"
+                        className="rounded-lg border px-3 py-2 text-sm"
+                    />
+
+                    <input
+                        value={data.subject_name}
+                        onChange={(e) =>
+                            setData('subject_name', e.target.value)
+                        }
+                        placeholder="Subject Name"
+                        className="rounded-lg border px-3 py-2 text-sm"
+                    />
+
+                    <select
+                        value={data.day}
+                        onChange={(e) => setData('day', e.target.value)}
+                        className="rounded-lg border px-3 py-2 text-sm"
+                    >
+                        <option value="">Select day</option>
+                        {[
+                            'Monday',
+                            'Tuesday',
+                            'Wednesday',
+                            'Thursday',
+                            'Friday',
+                            'Saturday',
+                        ].map((day) => (
+                            <option key={day} value={day}>
+                                {day}
+                            </option>
+                        ))}
+                    </select>
+
+                    <input
+                        type="time"
+                        value={data.start_time}
+                        onChange={(e) => setData('start_time', e.target.value)}
+                        className="rounded-lg border px-3 py-2 text-sm"
+                    />
+
+                    <input
+                        type="time"
+                        value={data.end_time}
+                        onChange={(e) => setData('end_time', e.target.value)}
+                        className="rounded-lg border px-3 py-2 text-sm"
+                    />
+
+                    <input
+                        value={data.room}
+                        onChange={(e) => setData('room', e.target.value)}
+                        placeholder="Room"
+                        className="rounded-lg border px-3 py-2 text-sm"
+                    />
+                </div>
+
+                <button
+                    disabled={processing}
+                    onClick={submit}
+                    className="mt-4 rounded-lg px-5 py-2.5 text-sm font-medium text-white"
+                    style={{ backgroundColor: '#1e3a5f' }}
+                >
+                    <Save size={15} className="mr-2 inline" />
+                    Save Schedule
+                </button>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-border bg-card">
+                <table className="w-full">
+                    <thead>
+                        <tr className="border-b bg-muted/40">
+                            {[
+                                'Faculty',
+                                'Semester',
+                                'Subject',
+                                'Day',
+                                'Time',
+                                'Room',
+                                'Actions',
+                            ].map((h) => (
+                                <th
+                                    key={h}
+                                    className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase"
+                                >
+                                    {h}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+
+                    <tbody className="divide-y divide-border">
+                        {classSchedules.map((s) => (
+                            <tr key={s.id}>
+                                <td className="px-5 py-3.5 text-sm font-medium">
+                                    {s.faculty_name}
+                                </td>
+                                <td className="px-5 py-3.5 text-sm">
+                                    {s.school_year_label} - {s.semester_name}
+                                </td>
+                                <td className="px-5 py-3.5 text-sm">
+                                    <span className="font-semibold">
+                                        {s.subject_code}
+                                    </span>
+                                    <div className="text-xs text-muted-foreground">
+                                        {s.subject_name}
+                                    </div>
+                                </td>
+                                <td className="px-5 py-3.5 text-sm">{s.day}</td>
+                                <td className="px-5 py-3.5 text-sm">
+                                    {s.start_time} - {s.end_time}
+                                </td>
+                                <td className="px-5 py-3.5 text-sm">
+                                    {s.room ?? '—'}
+                                </td>
+                                <td className="px-5 py-3.5">
+                                    <button
+                                        onClick={() => remove(s.id)}
+                                        className="rounded p-1 text-muted-foreground hover:text-red-600"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+
+                        {classSchedules.length === 0 && (
+                            <tr>
+                                <td
+                                    colSpan={7}
+                                    className="px-5 py-8 text-center text-sm text-muted-foreground"
+                                >
+                                    No class schedules found.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
 function SecretaryDashboard() {
     const { facultyUsers = [], attendanceRecords = [] } = usePage().props as {
         facultyUsers?: FacultyUser[];
@@ -1801,7 +2041,7 @@ function SecretaryDashboard() {
     const marked = presentN + absentN + lateN;
 
     return (
-        <div className="space-y-6 p-8">
+        <div className="h-full space-y-6 bg-[#f2f2f2] p-8">
             <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
                 <StatCard
                     label="Present Today"
@@ -2017,13 +2257,29 @@ function AttendanceChecker() {
         facultyUsers = [],
         attendanceRecords = [],
         departments = [],
+        classSchedules = [],
     } = usePage().props as {
         facultyUsers?: FacultyUser[];
         attendanceRecords?: AttendanceRecord[];
         departments?: Department[];
+        classSchedules?: ClassSchedule[];
     };
 
     const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+    const selectedDay = new Date(date + 'T00:00:00').toLocaleDateString(
+        'en-US',
+        {
+            weekday: 'long',
+        },
+    );
+
+    const getFacultySchedules = (facultyId: number) => {
+        return classSchedules.filter(
+            (schedule) =>
+                schedule.faculty_id === facultyId &&
+                schedule.day === selectedDay,
+        );
+    };
     const [dept, setDept] = useState('all');
 
     const [attendance, setAttendance] = useState<
@@ -2102,7 +2358,7 @@ function AttendanceChecker() {
     };
 
     return (
-        <div className="space-y-5 bg-slate-50 p-8">
+        <div className="h-full space-y-5 bg-slate-50 p-8">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <input
@@ -2210,9 +2466,53 @@ function AttendanceChecker() {
                                                 <p className="text-sm font-bold text-foreground">
                                                     {f.name}
                                                 </p>
+
                                                 <p className="text-xs text-muted-foreground">
                                                     Faculty Member
                                                 </p>
+
+                                                <div className="mt-2 space-y-1">
+                                                    {getFacultySchedules(f.id)
+                                                        .length > 0 ? (
+                                                        getFacultySchedules(
+                                                            f.id,
+                                                        ).map((schedule) => (
+                                                            <div
+                                                                key={
+                                                                    schedule.id
+                                                                }
+                                                                className="rounded-md bg-slate-100 px-2.5 py-1 text-xs text-slate-700"
+                                                            >
+                                                                <span className="font-semibold">
+                                                                    {
+                                                                        schedule.subject_code
+                                                                    }
+                                                                </span>{' '}
+                                                                {
+                                                                    schedule.start_time
+                                                                }{' '}
+                                                                -{' '}
+                                                                {
+                                                                    schedule.end_time
+                                                                }
+                                                                {schedule.room && (
+                                                                    <span className="text-muted-foreground">
+                                                                        {' '}
+                                                                        ·{' '}
+                                                                        {
+                                                                            schedule.room
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            No class schedule
+                                                            for {selectedDay}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -2421,6 +2721,18 @@ type MonthlyAttendance = {
     present: number;
     absent: number;
     late: number;
+};
+
+type MyClassSchedule = {
+    id: number;
+    subject_code: string;
+    subject_name: string;
+    day: string;
+    start_time: string;
+    end_time: string;
+    room?: string;
+    semester_name: string;
+    school_year_label: string;
 };
 
 function FacultyDashboard() {
@@ -2813,6 +3125,81 @@ function FacultyProfile() {
     );
 }
 
+function FacultyClassSchedule() {
+    const { myClassSchedules = [] } = usePage().props as {
+        myClassSchedules?: MyClassSchedule[];
+    };
+
+    return (
+        <div className="h-full space-y-5 bg-[#f9fbfc] p-8">
+            <div className="overflow-hidden rounded-xl border border-border bg-card">
+                <div className="border-b border-border px-6 py-4">
+                    <h3 className="font-semibold text-foreground">
+                        My Class Schedule
+                    </h3>
+                </div>
+
+                <table className="w-full">
+                    <thead>
+                        <tr className="border-b bg-muted/40">
+                            {['Subject', 'Day', 'Time', 'Room', 'Semester'].map(
+                                (h) => (
+                                    <th
+                                        key={h}
+                                        className="px-5 py-3.5 text-left text-xs font-semibold text-muted-foreground uppercase"
+                                    >
+                                        {h}
+                                    </th>
+                                ),
+                            )}
+                        </tr>
+                    </thead>
+
+                    <tbody className="divide-y divide-border">
+                        {myClassSchedules.map((s) => (
+                            <tr key={s.id}>
+                                <td className="px-5 py-3.5 text-sm">
+                                    <span className="font-semibold">
+                                        {s.subject_code}
+                                    </span>
+                                    <div className="text-xs text-muted-foreground">
+                                        {s.subject_name}
+                                    </div>
+                                </td>
+
+                                <td className="px-5 py-3.5 text-sm">{s.day}</td>
+
+                                <td className="px-5 py-3.5 text-sm">
+                                    {s.start_time} - {s.end_time}
+                                </td>
+
+                                <td className="px-5 py-3.5 text-sm">
+                                    {s.room ?? '—'}
+                                </td>
+
+                                <td className="px-5 py-3.5 text-sm">
+                                    {s.school_year_label} - {s.semester_name}
+                                </td>
+                            </tr>
+                        ))}
+
+                        {myClassSchedules.length === 0 && (
+                            <tr>
+                                <td
+                                    colSpan={5}
+                                    className="px-5 py-8 text-center text-sm text-muted-foreground"
+                                >
+                                    No class schedule found.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
 const PAGE_META: Record<string, { title: string; subtitle: string }> = {
     dashboard: { title: 'Dashboard', subtitle: 'Overview and quick stats' },
     users: {
@@ -2855,15 +3242,31 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
         title: 'My Profile',
         subtitle: 'Personal information and account settings',
     },
+    schedules: {
+        title: 'Class Schedule',
+        subtitle: 'Manage faculty class schedules',
+    },
+    'my-schedule': {
+        title: 'Class Schedule',
+        subtitle: 'Your assigned teaching schedule',
+    },
 };
 
-const USER_NAMES: Record<Role, string> = {
-    admin: 'System Administrator',
-    secretary: 'Ana Reyes',
-    faculty: 'Juan dela Cruz',
-};
+// const USER_NAMES: Record<Role, string> = {
+//     admin: 'System Administrator',
+//     secretary: 'Ana Reyes',
+//     faculty: 'Juan dela Cruz',
+// };
 
-function AppLayout({ role, onLogout }: { role: Role; onLogout: () => void }) {
+function AppLayout({
+    role,
+    userName,
+    onLogout,
+}: {
+    role: Role;
+    userName: string;
+    onLogout: () => void;
+}) {
     const [page, setPage] = useState('dashboard');
     const [collapsed, setCollapsed] = useState(false);
     const meta = PAGE_META[page] ?? { title: page, subtitle: '' };
@@ -2898,6 +3301,7 @@ function AppLayout({ role, onLogout }: { role: Role; onLogout: () => void }) {
                 );
             if (page === 'calendar') return <AdminCalendar />;
             if (page === 'reports') return <AdminReports />;
+            if (page === 'schedules') return <AdminClassSchedules />;
         }
         if (role === 'secretary') {
             if (page === 'dashboard') return <SecretaryDashboard />;
@@ -2908,6 +3312,7 @@ function AppLayout({ role, onLogout }: { role: Role; onLogout: () => void }) {
             if (page === 'dashboard') return <FacultyDashboard />;
             if (page === 'history') return <FacultyHistory />;
             if (page === 'profile') return <FacultyProfile />;
+            if (page === 'my-schedule') return <FacultyClassSchedule />;
         }
         return null;
     };
@@ -2930,7 +3335,7 @@ function AppLayout({ role, onLogout }: { role: Role; onLogout: () => void }) {
                     title={meta.title}
                     subtitle={meta.subtitle}
                     role={role}
-                    userName={USER_NAMES[role]}
+                    userName={userName}
                 />
                 <main className="flex-1 overflow-y-auto">{renderScreen()}</main>
             </div>
@@ -2949,5 +3354,11 @@ export default function AttendanceIndex() {
               ? 'secretary'
               : 'faculty';
 
-    return <AppLayout role={role} onLogout={() => router.post('/logout')} />;
+    return (
+        <AppLayout
+            role={role}
+            userName={user.name}
+            onLogout={() => router.post('/logout')}
+        />
+    );
 }

@@ -12,6 +12,8 @@ use App\Models\Semester;
 use App\Models\Holiday;
 use App\Http\Controllers\AttendanceController;
 use App\Models\Attendance;
+use App\Http\Controllers\ClassScheduleController;
+use App\Models\ClassSchedule;
 
     Route::redirect('/', '/login')->name('home');
 
@@ -66,6 +68,7 @@ use App\Models\Attendance;
                 'totalSecretaries' => User::where('role_id', 2)->count(),
                 'totalDepartments' => Department::count(),
                 'totalHolidays' => Holiday::count(),
+                'totalSchedules' => ClassSchedule::count(),
                 'currentSemester' => $currentSemester,
                 'activeSchoolYear' => $activeSchoolYear,
             ],
@@ -151,6 +154,47 @@ use App\Models\Attendance;
                     ];
                 }),
 
+            'classSchedules' => ClassSchedule::query()
+                ->leftJoin('users', 'class_schedules.faculty_id', '=', 'users.id')
+                ->leftJoin('semester', 'class_schedules.semester_id', '=', 'semester.id')
+                ->leftJoin('school_year', 'semester.school_year_id', '=', 'school_year.id')
+                ->orderBy('users.name')
+                ->orderBy('class_schedules.day')
+                ->orderBy('class_schedules.start_time')
+                ->get([
+                    'class_schedules.id',
+                    'class_schedules.faculty_id',
+                    'class_schedules.semester_id',
+                    'class_schedules.subject_code',
+                    'class_schedules.subject_name',
+                    'class_schedules.day',
+                    'class_schedules.start_time',
+                    'class_schedules.end_time',
+                    'class_schedules.room',
+                    'users.name as faculty_name',
+                    'semester.name as semester_name',
+                    'school_year.year_label as school_year_label',
+                ]),
+
+            'myClassSchedules' => auth()->user()->role_id == 3
+                ? ClassSchedule::query()
+                    ->leftJoin('semester', 'class_schedules.semester_id', '=', 'semester.id')
+                    ->leftJoin('school_year', 'semester.school_year_id', '=', 'school_year.id')
+                    ->where('class_schedules.faculty_id', auth()->id())
+                    ->orderBy('class_schedules.day')
+                    ->orderBy('class_schedules.start_time')
+                    ->get([
+                        'class_schedules.id',
+                        'class_schedules.subject_code',
+                        'class_schedules.subject_name',
+                        'class_schedules.day',
+                        'class_schedules.start_time',
+                        'class_schedules.end_time',
+                        'class_schedules.room',
+                        'semester.name as semester_name',
+                        'school_year.year_label as school_year_label',
+                    ])
+                : [],
             'attendanceRecords' => Attendance::whereDate('date', now()->toDateString())
                 ->get(['faculty_id', 'status']),
 
@@ -190,6 +234,9 @@ use App\Models\Attendance;
 
     Route::post('/school-years', [CalendarController::class, 'storeSchoolYear']);
     Route::patch('/school-years/{schoolYear}/activate', [CalendarController::class, 'activateSchoolYear']);
+
+    Route::post('/class-schedules', [ClassScheduleController::class, 'store']);
+    Route::delete('/class-schedules/{classSchedule}', [ClassScheduleController::class, 'destroy']);
 });
     
 
