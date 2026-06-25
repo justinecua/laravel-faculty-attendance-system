@@ -1,117 +1,99 @@
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
-import PasskeyVerify from '@/components/passkey-verify';
 import PasswordInput from '@/components/password-input';
-import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { register } from '@/routes';
 import { store } from '@/routes/login';
-import { request } from '@/routes/password';
+import { Eye, BookOpen } from 'lucide-react';
 
 type Props = {
     status?: string;
     canResetPassword: boolean;
 };
 
-export default function Login({ status, canResetPassword }: Props) {
+export default function Login({ status }: Props) {
     return (
         <>
             <Head title="Log in" />
 
-            <PasskeyVerify />
+            <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm">
+                <div className="mb-7 text-center">
+                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#1e3a5f]">
+                        <BookOpen size={22} className="text-white" />
+                    </div>
 
-            <Form
-                {...store.form()}
-                resetOnSuccess={['password']}
-                className="flex flex-col gap-6"
-            >
-                {({ processing, errors }) => (
-                    <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                    <h2 className="text-xl font-bold text-foreground">
+                        Welcome back
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Sign in to access your dashboard
+                    </p>
+                </div>
+
+                <Form
+                    {...store.form()}
+                    resetOnSuccess={['password']}
+                    className="space-y-4"
+                >
+                    {({ processing, errors }) => (
+                        <>
+                            <div>
+                                <Label htmlFor="email">Email</Label>
                                 <Input
                                     id="email"
                                     type="email"
                                     name="email"
                                     required
                                     autoFocus
-                                    tabIndex={1}
                                     autoComplete="email"
                                     placeholder="email@example.com"
+                                    className="mt-1.5"
                                 />
-                                <InputError message={errors.email} />
                             </div>
 
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
-                                    {canResetPassword && (
-                                        <TextLink
-                                            href={request()}
-                                            className="ml-auto text-sm"
-                                            tabIndex={5}
-                                        >
-                                            Forgot your password?
-                                        </TextLink>
-                                    )}
-                                </div>
+                            <div>
+                                <Label htmlFor="password">Password</Label>
                                 <PasswordInput
                                     id="password"
                                     name="password"
                                     required
-                                    tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder="Password"
+                                    className="mt-1.5"
                                 />
-                                <InputError message={errors.password} />
                             </div>
-
-                            <div className="flex items-center space-x-3">
-                                <Checkbox
-                                    id="remember"
-                                    name="remember"
-                                    tabIndex={3}
-                                />
-                                <Label htmlFor="remember">Remember me</Label>
-                            </div>
-
+                            <InputError
+                                className="text-center"
+                                message={errors.email}
+                            />
+                            <InputError
+                                className="text-center"
+                                message={errors.password}
+                            />
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
-                                tabIndex={4}
+                                className="mt-4 w-full bg-[#1e3a5f] hover:bg-[#2d5282]"
                                 disabled={processing}
-                                data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Log in
+                                Sign in
                             </Button>
-                        </div>
+                        </>
+                    )}
+                </Form>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink href={register()} tabIndex={5}>
-                                Sign up
-                            </TextLink>
-                        </div>
-                    </>
+                {status && (
+                    <div className="mt-4 text-center text-sm font-medium text-green-600">
+                        {status}
+                    </div>
                 )}
-            </Form>
 
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
+                <p className="mt-5 text-center text-xs text-muted-foreground">
+                    © 2026 St. Michael&apos;s College Inc. All rights reserved.
+                </p>
+            </div>
         </>
     );
 }
-
-Login.layout = {
-    title: 'Log in to your account',
-    description: 'Enter your email and password below to log in',
-};
