@@ -125,34 +125,44 @@ use App\Models\ClassSchedule;
                         ->implode(''),
                 ]),
 
-            'tallyData' => User::query()
-                ->leftJoin('department', 'users.department_id', '=', 'department.id')
-                ->where('users.role_id', 3)
-                ->orderBy('users.name')
-                ->get([
-                    'users.id',
-                    'users.name',
-                    'department.code as department_code',
-                ])
-                ->map(function ($user) {
-                    $records = Attendance::where('faculty_id', $user->id)->get();
+                'tallyData' => User::query()
+                    ->leftJoin('department', 'users.department_id', '=', 'department.id')
+                    ->where('users.role_id', 3)
+                    ->orderBy('users.name')
+                    ->get([
+                        'users.id',
+                        'users.name',
+                        'department.code as department_code',
+                    ])
+                    ->flatMap(function ($user) {
+                        return Semester::query()
+                            ->orderByDesc('id')
+                            ->get()
+                            ->map(function ($semester) use ($user) {
+                                $records = Attendance::where('faculty_id', $user->id)
+                                    ->where('semester_id', $semester->id)
+                                    ->get();
 
-                    $present = $records->where('status', 'present')->count();
-                    $absent = $records->where('status', 'absent')->count();
-                    $late = $records->where('status', 'late')->count();
-                    $total = $records->count();
+                                $present = $records->where('status', 'present')->count();
+                                $absent = $records->where('status', 'absent')->count();
+                                $late = $records->where('status', 'late')->count();
+                                $total = $records->count();
 
-                    return [
-                        'facultyId' => $user->id,
-                        'name' => $user->name,
-                        'dept' => $user->department_code ?? '—',
-                        'total' => $total,
-                        'present' => $present,
-                        'absent' => $absent,
-                        'late' => $late,
-                        'rate' => $total > 0 ? round((($present + $late) / $total) * 100, 1) : 0,
-                    ];
-                }),
+                                return [
+                                    'facultyId' => $user->id,
+                                    'semesterId' => $semester->id,
+                                    'name' => $user->name,
+                                    'dept' => $user->department_code ?? '—',
+                                    'total' => $total,
+                                    'present' => $present,
+                                    'absent' => $absent,
+                                    'late' => $late,
+                                    'rate' => $total > 0
+                                        ? round((($present + $late) / $total) * 100, 1)
+                                        : 0,
+                                ];
+                            });
+                    }),
 
             'classSchedules' => ClassSchedule::query()
                 ->leftJoin('users', 'class_schedules.faculty_id', '=', 'users.id')
@@ -237,6 +247,34 @@ use App\Models\ClassSchedule;
 
     Route::post('/class-schedules', [ClassScheduleController::class, 'store']);
     Route::delete('/class-schedules/{classSchedule}', [ClassScheduleController::class, 'destroy']);
+
+    Route::get('/faculty/{faculty}/attendance-history', function (User $faculty) {
+    $attendance = Attendance::query()
+        ->where('faculty_id', $faculty->id)
+        ->leftJoin('semester', 'attendance.semester_id', '=', 'semester.id')
+        ->leftJoin('school_year', 'attendance.school_year_id', '=', 'school_year.id')
+        ->orderByDesc('attendance.date')
+        ->get([
+            'attendance.id',
+            'attendance.date',
+            'attendance.status',
+            'attendance.remarks',
+            'attendance.semester_id',
+            'attendance.school_year_id',
+            'semester.name as semester_name',
+            'school_year.year_label as school_year_label',
+        ]);
+
+    return response()->json([
+        'faculty' => [
+            'id' => $faculty->id,
+            'name' => $faculty->name,
+            'email' => $faculty->email,
+            'employee_id' => $faculty->employee_id,
+        ],
+        'attendance' => $attendance,
+    ]);
+})->name('faculty.attendance-history');
 });
     
 

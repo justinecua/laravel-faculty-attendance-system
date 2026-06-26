@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\Semester;
 use Illuminate\Http\Request;
+use App\Models\SchoolYear;
+use App\Models\Semester;
 
 class AttendanceController extends Controller
 {
@@ -17,23 +18,36 @@ class AttendanceController extends Controller
             'attendance.*.status' => ['required', 'in:present,absent,late'],
         ]);
 
-        $semester = Semester::orderByDesc('id')->first();
+        $activeSchoolYear = SchoolYear::where('is_active', true)->first();
 
-        foreach ($validated['attendance'] as $row) {
+        $semester = $activeSchoolYear
+            ? Semester::where('school_year_id', $activeSchoolYear->id)
+                ->whereDate('start_date', '<=', $validated['date'])
+                ->whereDate('end_date', '>=', $validated['date'])
+                ->first()
+            : null;
+
+        if (!$semester) {
+            return back()->withErrors([
+                'semester' => 'No active semester found for this date.',
+            ]);
+        }
+
+        foreach ($validated['attendance'] as $record) {
             Attendance::updateOrCreate(
                 [
-                    'faculty_id' => $row['faculty_id'],
+                    'faculty_id' => $record['faculty_id'],
                     'date' => $validated['date'],
                 ],
                 [
-                    'semester_id' => $semester?->id,
+                    'semester_id' => $semester->id,
                     'marked_by' => auth()->id(),
-                    'status' => $row['status'],
-                    'remarks' => $row['status'],
-                ]
+                    'status' => $record['status'],
+                    'remarks' => $record['status'],
+                ],
             );
         }
 
-        return back()->with('success', 'Attendance saved successfully.');
+        return back()->with('success', 'Attendance saved.');
     }
 }
